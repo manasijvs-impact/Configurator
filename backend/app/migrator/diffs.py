@@ -36,16 +36,32 @@ MAX_DETAIL_ROWS = 50
 
 # ── Column / row helpers (mirror db_validator.get_columns / get_all_rows) ──
 
+def _pg_type_alias(udt_name):
+    """Postgres short type name (as shown by DBeaver / \\d): `float8`, `int4`,
+    `varchar`, `timestamptz`, etc. `udt_name` from information_schema already IS
+    the pg_type name; array types come back as `_int4` → rendered as `int4[]`."""
+    if not udt_name:
+        return udt_name
+    if udt_name.startswith("_"):
+        return udt_name[1:] + "[]"
+    return udt_name
+
+
 def _bulk_columns(conn, schema):
     """{table_name: OrderedDict(col -> {data_type})} for the WHOLE schema in ONE
     query. Replaces the per-table information_schema lookups that made Step 3
     do hundreds of sequential round trips over VPN. Ordered by ordinal_position
-    so the column order matches db_validator.get_all_rows."""
+    so the column order matches db_validator.get_all_rows.
+
+    `data_type` is stored as the Postgres alias (`float8`, `varchar`, …) via
+    `udt_name`, matching what users see in DBeaver, rather than the verbose SQL
+    standard name (`double precision`, `character varying`) that
+    information_schema.data_type returns."""
     out = {}
     with conn.cursor() as cur:
         cur.execute(
             """
-            SELECT table_name, column_name, data_type
+            SELECT table_name, column_name, udt_name
             FROM information_schema.columns
             WHERE table_schema = %s
             ORDER BY table_name, ordinal_position
@@ -54,7 +70,7 @@ def _bulk_columns(conn, schema):
         )
         for r in cur.fetchall():
             out.setdefault(r["table_name"], OrderedDict())[r["column_name"]] = {
-                "data_type": r["data_type"],
+                "data_type": _pg_type_alias(r["udt_name"]),
             }
     return out
 
