@@ -311,11 +311,11 @@ function ChangedCard({ row, pkCol, SRC, TGT }) {
                   ) : (
                     <>
                       <td style={{ padding: '6px 12px', verticalAlign: 'top' }}>
-                        <div style={{ fontSize: 10.5, color: THEME.textMuted, marginBottom: 2 }}>only in {SRC}</div>
+                        <div style={{ fontSize: 10.5, color: THEME.textMuted, marginBottom: 2 }}>in {SRC}, missing in {TGT}</div>
                         <ListChips items={f.added} more={f.added_more} bg="#dcfce7" fg="#166534" sign="+" />
                       </td>
                       <td style={{ padding: '6px 12px', verticalAlign: 'top' }}>
-                        <div style={{ fontSize: 10.5, color: THEME.textMuted, marginBottom: 2 }}>only in {TGT}</div>
+                        <div style={{ fontSize: 10.5, color: THEME.textMuted, marginBottom: 2 }}>in {TGT}, missing in {SRC}</div>
                         <ListChips items={f.removed} more={f.removed_more} bg="#fee2e2" fg="#991b1b" sign="−" />
                       </td>
                     </>
